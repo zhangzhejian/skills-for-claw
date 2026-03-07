@@ -1,0 +1,23 @@
+{
+  "skill_name": "arxiv-daily-digest",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "帮我看看最近 arxiv 上 LLM agent 和 code generation 方向有什么新论文",
+      "expected_output": "一份中文 Markdown 报告，按 LLM agent 和 code generation 两个方向分组，包含论文标题、作者、链接、摘要总结和创新性评价",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "我想了解 cs.CV 和 cs.CL 这两个方向最近关于 multimodal 的最新研究",
+      "expected_output": "一份中文 Markdown 报告，按多模态相关子方向分组，覆盖 cs.CV 和 cs.CL 的论文",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "追踪一下 reinforcement learning from human feedback 这个领域最近的进展",
+      "expected_output": "一份中文报告，聚焦 RLHF 相关论文，能正确映射到 cs.AI/cs.LG 等分类进行搜索",
+      "files": []
+    }
+  ]
+}

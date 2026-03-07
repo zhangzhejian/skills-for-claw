@@ -1,0 +1,101 @@
+{
+  "skill_name": "ai-agent-daily-digest",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "帮我看看今天 AI agent 领域有什么新动态",
+      "expected_output": "包含 AI Agent 动态、OpenClaw 动态和今日观察三个板块的中文 markdown 报告",
+      "files": [],
+      "assertions": [
+        {
+          "name": "report-has-ai-agent-section",
+          "type": "contains",
+          "value": "AI Agent",
+          "description": "报告包含 AI Agent 动态板块"
+        },
+        {
+          "name": "report-has-openclaw-section",
+          "type": "contains",
+          "value": "OpenClaw",
+          "description": "报告包含 OpenClaw 相关内容"
+        },
+        {
+          "name": "report-has-source-links",
+          "type": "regex",
+          "value": "https?://",
+          "description": "报告包含来源链接"
+        },
+        {
+          "name": "report-is-chinese",
+          "type": "regex",
+          "value": "[\\u4e00-\\u9fff]{10,}",
+          "description": "报告主体为中文"
+        },
+        {
+          "name": "report-saved-as-markdown",
+          "type": "file_exists",
+          "value": "ai_agent_digest_*.md",
+          "description": "报告保存为 markdown 文件"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "openclaw 最近在做什么？github 上有什么更新？",
+      "expected_output": "包含 OpenClaw GitHub commits、PRs 信息的报告，有开发趋势分析",
+      "files": [],
+      "assertions": [
+        {
+          "name": "has-github-commits",
+          "type": "regex",
+          "value": "(commit|SHA|sha|提交)",
+          "description": "报告包含 GitHub commit 信息"
+        },
+        {
+          "name": "has-openclaw-github-data",
+          "type": "contains",
+          "value": "openclaw",
+          "description": "报告包含 openclaw 仓库数据"
+        },
+        {
+          "name": "has-dev-analysis",
+          "type": "regex",
+          "value": "(趋势|方向|重点|分析|开发)",
+          "description": "报告包含开发趋势分析"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "做一个全网 AI 信息总结",
+      "expected_output": "综合性报告，覆盖 AI Agent 技术、产品、OpenClaw、GitHub 全部板块",
+      "files": [],
+      "assertions": [
+        {
+          "name": "comprehensive-ai-coverage",
+          "type": "regex",
+          "value": "(agent|Agent|LLM|大模型)",
+          "description": "覆盖 AI agent/LLM 相关内容"
+        },
+        {
+          "name": "has-multiple-news-items",
+          "type": "regex",
+          "value": "###.*\\n",
+          "description": "包含多条新闻条目（多个三级标题）"
+        },
+        {
+          "name": "has-observation-section",
+          "type": "regex",
+          "value": "(观察|总结|趋势)",
+          "description": "包含总结/观察板块"
+        },
+        {
+          "name": "report-saved-as-markdown",
+          "type": "file_exists",
+          "value": "ai_agent_digest_*.md",
+          "description": "报告保存为 markdown 文件"
+        }
+      ]
+    }
+  ]
+}
