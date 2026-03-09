@@ -143,20 +143,20 @@ TOTAL=$(wc -l < "$ITEMS_FILE" | tr -d ' ')
 awk -F'\t' -v hours="$HOURS" '
 BEGIN {
   OFS = "\t"
-  split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", m_arr)
+  split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", m_arr, " ")
   for (i = 1; i <= 12; i++) mon[m_arr[i]] = i
 
   "date +%s" | getline now; close("date +%s")
   cutoff = now - hours * 3600
 
-  nkw = split("agent agentic autonomous mcp claude gpt gemini copilot langchain openai anthropic", kw_arr)
+  nkw = split("agent agentic autonomous mcp claude gpt gemini copilot langchain openai anthropic", kw_arr, " ")
 }
 
 function mkepoch(yr, mo, dy, h, mi, se,    t, y) {
   t = 0
   for (y = 1970; y < yr; y++)
     t += (y%4==0 && (y%100!=0 || y%400==0)) ? 366 : 365
-  split("31 28 31 30 31 30 31 31 30 31 30 31", _dm)
+  split("31 28 31 30 31 30 31 31 30 31 30 31", _dm, " ")
   if (yr%4==0 && (yr%100!=0 || yr%400==0)) _dm[2] = 29
   for (_m = 1; _m < mo; _m++) t += _dm[_m]
   t += dy - 1

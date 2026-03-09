@@ -27,7 +27,7 @@ description: 获取全网最新 AI Agent 相关技术动态、产品发布，以
 运行脚本从 6 个精选 RSS 源批量获取最近 24 小时的 AI 新闻：
 
 ```bash
-python3 scripts/fetch_rss.py --hours 24 --json
+bash scripts/fetch_rss.sh --hours 24 --json
 ```
 
 脚本路径相对于本 skill 所在目录。脚本内置以下已验证的 RSS 源：
@@ -63,7 +63,7 @@ RSS 覆盖不到的信息用搜索工具补充，重点补充以下方向：
 运行脚本获取 GitHub 数据：
 
 ```bash
-python3 scripts/fetch_github.py openclaw/openclaw --hours 24
+bash scripts/fetch_github.sh openclaw/openclaw --hours 24
 ```
 
 脚本路径相对于本 skill 所在目录。脚本输出 JSON，包含 commits、pull_requests、releases 三个字段。
