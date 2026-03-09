@@ -45,39 +45,69 @@ def build_query(categories: list[str], keywords: list[str]) -> str:
 
 def fetch_papers(query: str, max_results: int, hours: int) -> list[dict]:
     """Fetch papers from arxiv API and filter by date."""
-    params = {
-        "search_query": query,
-        "start": 0,
-        "max_results": max_results,
-        "sortBy": "submittedDate",
-        "sortOrder": "descending",
-    }
+    # Fetch in batches to get more results if needed
+    all_entries = []
+    batch_size = min(max_results, 200)
+    start = 0
 
-    url = f"{ARXIV_API}?{urllib.parse.urlencode(params)}"
-    req = urllib.request.Request(url, headers={"User-Agent": "arxiv-daily-digest/1.0"})
+    while start < max_results:
+        params = {
+            "search_query": query,
+            "start": start,
+            "max_results": batch_size,
+            "sortBy": "submittedDate",
+            "sortOrder": "descending",
+        }
 
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        data = resp.read()
+        url = f"{ARXIV_API}?{urllib.parse.urlencode(params)}"
+        req = urllib.request.Request(url, headers={"User-Agent": "arxiv-daily-digest/1.0"})
 
-    root = ET.fromstring(data)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = resp.read()
+        except Exception as e:
+            print(f"Error fetching batch at start={start}: {e}", file=sys.stderr)
+            break
+
+        root = ET.fromstring(data)
+        entries = root.findall("atom:entry", NS)
+
+        if not entries:
+            break
+
+        all_entries.extend(entries)
+
+        # If we got fewer than requested, no more results
+        if len(entries) < batch_size:
+            break
+
+        start += batch_size
+
     cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
 
     papers = []
-    for entry in root.findall("atom:entry", NS):
-        # Skip results info entry
+    for entry in all_entries:
         title = entry.find("atom:title", NS)
         if title is None:
             continue
         title_text = " ".join(title.text.strip().split())
 
-        # Parse published date
+        # Parse published date (use updated date as fallback, since arxiv
+        # sometimes has papers with old published dates but recent updates)
         published = entry.find("atom:published", NS)
+        updated = entry.find("atom:updated", NS)
         if published is None:
             continue
-        pub_date = datetime.fromisoformat(published.text.replace("Z", "+00:00"))
 
-        # Filter by date
-        if pub_date < cutoff:
+        pub_date = datetime.fromisoformat(published.text.replace("Z", "+00:00"))
+        upd_date = None
+        if updated is not None:
+            upd_date = datetime.fromisoformat(updated.text.replace("Z", "+00:00"))
+
+        # Use the most recent date for filtering
+        effective_date = max(pub_date, upd_date) if upd_date else pub_date
+
+        if effective_date < cutoff:
             continue
 
         # Extract authors
@@ -107,13 +137,22 @@ def fetch_papers(query: str, max_results: int, hours: int) -> list[dict]:
         primary_cat = entry.find("arxiv:primary_category", NS)
         primary = primary_cat.get("term", "") if primary_cat is not None else ""
 
+        # Extract PDF link
+        pdf_link = ""
+        for lnk in entry.findall("atom:link", NS):
+            if lnk.get("title") == "pdf":
+                pdf_link = lnk.get("href", "")
+                break
+
         papers.append({
             "title": title_text,
             "authors": authors,
             "abstract": abstract,
             "arxiv_id": arxiv_id,
             "link": link,
+            "pdf_link": pdf_link,
             "published": pub_date.isoformat(),
+            "updated": upd_date.isoformat() if upd_date else pub_date.isoformat(),
             "categories": categories,
             "primary_category": primary,
         })
@@ -125,8 +164,8 @@ def main():
     parser = argparse.ArgumentParser(description="Fetch recent arxiv papers")
     parser.add_argument("--categories", type=str, default="", help="Comma-separated arxiv categories")
     parser.add_argument("--keywords", type=str, default="", help="Comma-separated keywords")
-    parser.add_argument("--max-results", type=int, default=100, help="Max results per query")
-    parser.add_argument("--hours", type=int, default=24, help="Hours to look back")
+    parser.add_argument("--max-results", type=int, default=200, help="Max results per query")
+    parser.add_argument("--hours", type=int, default=72, help="Hours to look back")
     args = parser.parse_args()
 
     categories = [c.strip() for c in args.categories.split(",") if c.strip()]
@@ -149,6 +188,9 @@ def main():
         if p["arxiv_id"] not in seen:
             seen.add(p["arxiv_id"])
             unique.append(p)
+
+    if len(unique) < len(papers):
+        print(f"After dedup: {len(unique)} unique papers", file=sys.stderr)
 
     json.dump(unique, sys.stdout, ensure_ascii=False, indent=2)
 
