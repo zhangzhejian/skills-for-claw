@@ -1,0 +1,101 @@
+{
+  "_comment": "AI Agent 领域 KOL 关注列表。可自由增删条目。handle 为 X/Twitter 用户名，tags 用于分组。添加新 KOL 时请确认 handle 正确。",
+  "kols": [
+    {
+      "handle": "AnthropicAI",
+      "name": "Anthropic",
+      "org": "Anthropic",
+      "tags": ["official", "ai-company"]
+    },
+    {
+      "handle": "DarioAmodei",
+      "name": "Dario Amodei",
+      "org": "Anthropic",
+      "tags": ["ceo", "ai-company"]
+    },
+    {
+      "handle": "alexalbert__",
+      "name": "Alex Albert",
+      "org": "Anthropic",
+      "tags": ["dev", "ai-company"]
+    },
+    {
+      "handle": "OpenAI",
+      "name": "OpenAI",
+      "org": "OpenAI",
+      "tags": ["official", "ai-company"]
+    },
+    {
+      "handle": "sama",
+      "name": "Sam Altman",
+      "org": "OpenAI",
+      "tags": ["ceo", "ai-company"]
+    },
+    {
+      "handle": "gaborcselle",
+      "name": "Gabor Cselle",
+      "org": "OpenAI",
+      "tags": ["dev", "ai-company"]
+    },
+    {
+      "handle": "GoogleDeepMind",
+      "name": "Google DeepMind",
+      "org": "Google",
+      "tags": ["official", "ai-company"]
+    },
+    {
+      "handle": "demabordes",
+      "name": "Demis Hassabis",
+      "org": "Google DeepMind",
+      "tags": ["ceo", "ai-company"]
+    },
+    {
+      "handle": "AIatMeta",
+      "name": "Meta AI",
+      "org": "Meta",
+      "tags": ["official", "ai-company"]
+    },
+    {
+      "handle": "ylecun",
+      "name": "Yann LeCun",
+      "org": "Meta",
+      "tags": ["researcher", "ai-company"]
+    },
+    {
+      "handle": "MistralAI",
+      "name": "Mistral AI",
+      "org": "Mistral",
+      "tags": ["official", "ai-company"]
+    },
+    {
+      "handle": "hwchase17",
+      "name": "Harrison Chase",
+      "org": "LangChain",
+      "tags": ["ceo", "agent-framework"]
+    },
+    {
+      "handle": "jerryjliu0",
+      "name": "Jerry Liu",
+      "org": "LlamaIndex",
+      "tags": ["ceo", "agent-framework"]
+    },
+    {
+      "handle": "karpathy",
+      "name": "Andrej Karpathy",
+      "org": "Independent",
+      "tags": ["researcher", "influencer"]
+    },
+    {
+      "handle": "svpino",
+      "name": "Santiago Valdarrama",
+      "org": "Independent",
+      "tags": ["educator", "influencer"]
+    },
+    {
+      "handle": "OpenClaw",
+      "name": "OpenClaw",
+      "org": "OpenClaw",
+      "tags": ["official", "openclaw"]
+    }
+  ]
+}

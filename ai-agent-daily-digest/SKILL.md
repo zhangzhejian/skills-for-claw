@@ -20,7 +20,7 @@ description: 获取全网最新 AI Agent 相关技术动态、产品发布，以
 
 ### 第一步：信息采集
 
-从四个渠道并行采集信息。使用你环境中可用的命令行工具和搜索工具——不同环境可能提供不同的工具（如 WebSearch、web_search、搜索 MCP 等），选择能完成任务的即可。
+从五个渠道并行采集信息。使用你环境中可用的命令行工具和搜索工具——不同环境可能提供不同的工具（如 WebSearch、web_search、搜索 MCP 等），选择能完成任务的即可。
 
 #### 渠道 A：RSS 订阅源（主要数据源）
 
@@ -51,14 +51,39 @@ RSS 覆盖不到的信息用搜索工具补充，重点补充以下方向：
 
 这一步的目的是填补 RSS 的盲区，不需要重复 RSS 已经覆盖的信息。
 
-#### 渠道 C：OpenClaw 新闻
+#### 渠道 C：X/Twitter KOL 动态
+
+读取 `config/kol_list.json` 获取关注的 KOL 列表（路径相对于本 skill 所在目录）。该文件包含 AI 领域关键人物和公司的 X 账号，用户可以自行增删。
+
+用搜索工具检索这些 KOL 最近 24 小时的重要推文。由于 X 没有公开 RSS，通过搜索引擎间接获取：
+
+**搜索策略：** 不需要逐个搜索每个 KOL（那样太慢），而是分组批量搜索：
+- 按组织搜索：`site:x.com (AnthropicAI OR DarioAmodei OR alexalbert__) AI agent`
+- 按主题搜索：`site:x.com (sama OR OpenAI OR karpathy) agent release update`
+- OpenClaw 相关：`site:x.com OpenClaw`
+
+重点关注：产品发布预告、技术观点、行业评论、重大转发。忽略日常闲聊和纯转发。
+
+**如果搜索工具不支持 `site:x.com`**，尝试直接搜索 KOL 名字 + 关键词，如 `Sam Altman AI agent announcement`。
+
+**KOL 列表自定义：** 用户可以编辑 `config/kol_list.json` 添加或删除关注的账号。每个条目格式：
+```json
+{
+  "handle": "username",
+  "name": "显示名",
+  "org": "所属组织",
+  "tags": ["标签1", "标签2"]
+}
+```
+
+#### 渠道 D：OpenClaw 新闻
 
 搜索 OpenClaw 相关的商业与产品新闻：
 - "OpenClaw AI"
 - "OpenClaw product update"
 - "OpenClaw announcement"
 
-#### 渠道 D：OpenClaw GitHub 仓库
+#### 渠道 E：OpenClaw GitHub 仓库
 
 运行脚本获取 GitHub 数据：
 
@@ -102,6 +127,11 @@ bash scripts/fetch_github.sh openclaw/openclaw --hours 24
 - **影响分析**：一句话点评对 AI agent 生态的影响
 
 （按重要性排列 5-10 条。每条必须有来源链接。）
+
+### KOL 声音
+精选当天 KOL 的重要观点或发布预告（2-5 条）：
+- **[@handle](https://x.com/handle)**（Name, Org）：推文核心内容概述
+（如无值得收录的 KOL 动态，写"今日未发现重要 KOL 动态。"）
 
 ---
 
