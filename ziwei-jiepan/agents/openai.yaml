@@ -1,0 +1,4 @@
+interface:
+  display_name: "紫微解盘"
+  short_description: "Retrieve Ziwei sample cases and compose chart readings."
+  default_prompt: "根据已起好的命盘，检索样本案例并给出解盘。"

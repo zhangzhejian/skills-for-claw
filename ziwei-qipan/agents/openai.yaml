@@ -1,0 +1,4 @@
+interface:
+  display_name: "紫微起盘"
+  short_description: "Generate Ziwei charts as JSON and standalone HTML."
+  default_prompt: "为这个出生信息起紫微斗数命盘，并输出 JSON 和 HTML。"

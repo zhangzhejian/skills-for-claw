@@ -1,0 +1,4 @@
+interface:
+  display_name: "紫微合盘"
+  short_description: "Prepare dual Ziwei charts and case-backed relationship analysis."
+  default_prompt: "为两个人起盘或复用命盘，并检索案例做合盘分析。"
