@@ -25,6 +25,19 @@ Use this skill for two-person Ziwei analysis. Never compare only narrative text;
 4. Use `lib/ziwei/heming-knowledge.ts` from the project as methodology when available.
 5. Give practical conclusions with uncertainty. Do not claim deterministic fate.
 
+## Output Format
+
+Final user-facing output must be Markdown.
+
+Prefer:
+- `**总体匹配度**`
+- `**关键合拍点**`
+- `**关键冲突点**`
+- `**样本案例依据**`
+- `**建议**`
+
+Use bullets or compact Markdown tables for A/B palace comparison and mirror checks. Do not return raw JSON as the final answer unless the user explicitly asks for JSON. The hepan pack is intermediate evidence and should be summarized in Markdown.
+
 ## Script
 
 With existing chart JSON:

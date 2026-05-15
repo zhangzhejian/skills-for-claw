@@ -42,6 +42,18 @@ Each JSONL row has:
    - any project knowledge such as `patterns.ts`, classics, or `heming-knowledge.ts`
 5. State uncertainty when the sample year was mapped into the 60-year cycle.
 
+## Output Format
+
+Final user-facing output must be Markdown.
+
+Prefer this shape:
+- `**命盘重点**`
+- `**样本依据**`
+- `**解读**`
+- `**提醒**`
+
+Use bullets or a compact Markdown table for palace facts, patterns, and similar cases. Do not paste raw JSON as the final answer unless the user explicitly asks for JSON. Treat script JSON as intermediate evidence and convert it into readable Markdown.
+
 ## Script
 
 ```bash

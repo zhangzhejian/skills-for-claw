@@ -3,14 +3,17 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: qipan.sh --year Y --month M --day D --hour H --gender male|female [options]
+Usage: qipan.sh --year Y --month M --day D --clock-hour H --clock-minute M --gender male|female [options]
 
 Options:
   --repo PATH        ziwei-doushu repo path. Defaults to cwd or /Users/zhejianzhang/PrivateProject/ziwei-doushu
   --out DIR          output directory. Defaults to ./ziwei-chart-output
   --name NAME        optional name
   --city CITY        optional city
-  --longitude NUM    optional longitude
+  --longitude NUM    optional longitude. Defaults to 120
+  --hour-branch NUM  expert override: final branch index 0-11 where 0=子, 1=丑, ... 11=亥
+  --hour NUM         deprecated alias for --hour-branch
+  --unknown-time     mark birth time unknown; uses 子时 placeholder for deterministic chart generation
 
 Outputs:
   chart.json
@@ -24,10 +27,13 @@ NAME=""
 YEAR=""
 MONTH=""
 DAY=""
-HOUR=""
+HOUR_BRANCH=""
+CLOCK_HOUR=""
+CLOCK_MINUTE="0"
 GENDER=""
 CITY=""
-LONGITUDE=""
+LONGITUDE="120"
+UNKNOWN_TIME="0"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -37,10 +43,14 @@ while [ $# -gt 0 ]; do
     --year) YEAR="$2"; shift 2 ;;
     --month) MONTH="$2"; shift 2 ;;
     --day) DAY="$2"; shift 2 ;;
-    --hour) HOUR="$2"; shift 2 ;;
+    --clock-hour) CLOCK_HOUR="$2"; shift 2 ;;
+    --clock-minute) CLOCK_MINUTE="$2"; shift 2 ;;
+    --hour-branch) HOUR_BRANCH="$2"; shift 2 ;;
+    --hour) HOUR_BRANCH="$2"; shift 2 ;;
     --gender) GENDER="$2"; shift 2 ;;
     --city) CITY="$2"; shift 2 ;;
     --longitude) LONGITUDE="$2"; shift 2 ;;
+    --unknown-time) UNKNOWN_TIME="1"; shift ;;
     --help|-h) usage; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; usage; exit 2 ;;
   esac
@@ -55,9 +65,14 @@ if [ -z "$REPO" ]; then
 fi
 if [ -z "$OUT" ]; then OUT="$PWD/ziwei-chart-output"; fi
 
-for v in YEAR MONTH DAY HOUR GENDER; do
+for v in YEAR MONTH DAY GENDER; do
   if [ -z "${!v}" ]; then echo "Missing required --${v,,}" >&2; usage; exit 2; fi
 done
+if [ "$UNKNOWN_TIME" != "1" ] && [ -z "$CLOCK_HOUR" ] && [ -z "$HOUR_BRANCH" ]; then
+  echo "Missing time: use --clock-hour/--clock-minute for clock time, --hour-branch for branch index, or --unknown-time" >&2
+  usage
+  exit 2
+fi
 if [ "$GENDER" != "male" ] && [ "$GENDER" != "female" ]; then
   echo "--gender must be male or female" >&2
   exit 2
@@ -83,6 +98,26 @@ const out = env.OUT!;
 const branches = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
 const stems = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
 const order = [5,6,7,8,4,null,null,9,3,null,null,10,2,1,0,11];
+function parseNum(name: string, fallback?: number) {
+  const raw = env[name];
+  if (raw === undefined || raw === '') {
+    if (fallback !== undefined) return fallback;
+    throw new Error(`Missing ${name}`);
+  }
+  const n = Number(raw);
+  if (!Number.isFinite(n)) throw new Error(`${name} must be a number`);
+  return n;
+}
+function trueSolarMinutes(clockHour: number, clockMinute: number, longitude: number) {
+  const clockMins = clockHour * 60 + clockMinute;
+  const offset = (longitude - 120) * 4;
+  return ((clockMins + offset) % 1440 + 1440) % 1440;
+}
+function trueSolarBranch(clockHour: number, clockMinute: number, longitude: number) {
+  const solar = trueSolarMinutes(clockHour, clockMinute, longitude);
+  if (solar >= 1380 || solar < 60) return 0;
+  return Math.floor((solar - 60) / 120) + 1;
+}
 function esc(s: any) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 }
@@ -105,16 +140,56 @@ function palaceCell(branch: number | null, chart: any, palaceByBranch: Record<st
 }
 
 async function main() {
+  let year = parseNum('YEAR');
+  let month = parseNum('MONTH');
+  let day = parseNum('DAY');
+  const longitude = parseNum('LONGITUDE', 120);
+  let hour: number;
+  const timeMeta: any = {
+    unknownTime: env.UNKNOWN_TIME === '1',
+    longitude,
+  };
+
+  if (env.UNKNOWN_TIME === '1') {
+    hour = 0;
+  } else if (env.CLOCK_HOUR !== undefined && env.CLOCK_HOUR !== '') {
+    const clockHour = parseNum('CLOCK_HOUR');
+    const clockMinute = parseNum('CLOCK_MINUTE', 0);
+    if (clockHour < 0 || clockHour > 23 || clockMinute < 0 || clockMinute > 59) {
+      throw new Error('--clock-hour must be 0-23 and --clock-minute must be 0-59');
+    }
+    const solar = trueSolarMinutes(clockHour, clockMinute, longitude);
+    hour = trueSolarBranch(clockHour, clockMinute, longitude);
+    timeMeta.clockHour = clockHour;
+    timeMeta.clockMinute = clockMinute;
+    timeMeta.trueSolarMinutes = solar;
+    if (solar >= 1380) {
+      const next = new Date(year, month - 1, day + 1);
+      year = next.getFullYear();
+      month = next.getMonth() + 1;
+      day = next.getDate();
+      timeMeta.lateZiAdjustedToNextDay = true;
+    } else {
+      timeMeta.lateZiAdjustedToNextDay = false;
+    }
+  } else {
+    hour = parseNum('HOUR_BRANCH');
+    if (hour < 0 || hour > 11 || !Number.isInteger(hour)) {
+      throw new Error('--hour-branch must be an integer from 0 to 11');
+    }
+    timeMeta.hourBranchInput = hour;
+  }
+
   const birthInfo: any = {
-    year: Number(env.YEAR),
-    month: Number(env.MONTH),
-    day: Number(env.DAY),
-    hour: Number(env.HOUR),
+    year,
+    month,
+    day,
+    hour,
     gender: env.GENDER,
   };
   if (env.NAME) birthInfo.name = env.NAME;
   if (env.CITY) birthInfo.city = env.CITY;
-  if (env.LONGITUDE) birthInfo.longitude = Number(env.LONGITUDE);
+  if (env.LONGITUDE) birthInfo.longitude = longitude;
 
   const algorithm = await import(pathToFileURL(path.join(repo, 'lib/ziwei/algorithm.ts')).href);
   let patternsMod: any = null;
@@ -124,7 +199,7 @@ async function main() {
 
   const chart = algorithm.generateChart(birthInfo);
   const patterns = patternsMod?.detectPatterns ? patternsMod.detectPatterns(chart) : [];
-  const payload = { chart, patterns };
+  const payload = { chart, patterns, inputTime: timeMeta };
   fs.writeFileSync(path.join(out, 'chart.json'), JSON.stringify(payload, null, 2), 'utf8');
 
   const palaceByBranch = Object.fromEntries(chart.palaces.map((p: any) => [p.branch, p]));
@@ -177,5 +252,5 @@ if [ ! -d "$REPO/node_modules" ]; then
   (cd "$REPO" && npm install)
 fi
 
-REPO="$REPO" OUT="$OUT" NAME="$NAME" YEAR="$YEAR" MONTH="$MONTH" DAY="$DAY" HOUR="$HOUR" GENDER="$GENDER" CITY="$CITY" LONGITUDE="$LONGITUDE" \
+REPO="$REPO" OUT="$OUT" NAME="$NAME" YEAR="$YEAR" MONTH="$MONTH" DAY="$DAY" HOUR_BRANCH="$HOUR_BRANCH" CLOCK_HOUR="$CLOCK_HOUR" CLOCK_MINUTE="$CLOCK_MINUTE" GENDER="$GENDER" CITY="$CITY" LONGITUDE="$LONGITUDE" UNKNOWN_TIME="$UNKNOWN_TIME" \
   npx -y tsx "$RUNNER"
