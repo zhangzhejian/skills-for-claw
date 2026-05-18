@@ -1,0 +1,3 @@
+display_name: Self-Evolving Memory
+short_description: Diagnose, patch, validate, and improve agent memory systems.
+default_prompt: Improve this agent's memory system from feedback. Diagnose the memory failure, propose a versioned patch, verify it, and apply only evidence-backed changes.
