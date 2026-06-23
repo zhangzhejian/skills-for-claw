@@ -1,0 +1,4 @@
+interface:
+  display_name: "Self Envolving Memory Project Scope"
+  short_description: "Project memory with verification and forgetting"
+  default_prompt: "Use $self-envolving-memory-project-scope to initialize, audit, verify, merge, forget, or retrieve project-scoped .memory state for this repository."
